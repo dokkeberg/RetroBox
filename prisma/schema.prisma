@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Team {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  users    User[]    @relation()
+  sessions Session[]
+}
+
+model User {
+  id        Int    @id @default(autoincrement())
+  firstname String
+  lastname  String
+  email     String @unique
+  role      Role   @default(USER)
+  cards     Card[]
+  teamId    Int
+  team      Team   @relation(fields: [teamId], references: [id])
+}
+
+model Session {
+  id     Int          @id @default(autoincrement())
+  state  SessionState @default(PENDING)
+  teamId Int
+  team   Team         @relation(fields: [teamId], references: [id])
+  date   DateTime     @updatedAt
+  cards  Card[]
+}
+
+model Card {
+  id        Int       @id @default(autoincrement())
+  text      String
+  state     CardState @default(FACEDOWN)
+  type      CardType
+  sessionId Int
+  session   Session   @relation(fields: [sessionId], references: [id])
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id])
+  date      DateTime  @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum CardState {
+  FACEDOWN
+  FACEUP
+}
+
+enum CardType {
+  GREEN
+  YELLOW
+  RED
+}
+
+enum SessionState {
+  PENDING
+  OPEN
+  CLOSED
+}
